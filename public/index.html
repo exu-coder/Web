@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Try Your Luck - C2 Panel</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-box">
+            <div class="logo">
+                <i class="fas fa-skull"></i>
+                <h1>Try Your Luck</h1>
+                <p>C2 Command & Control Panel</p>
+            </div>
+            
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="password">Enter Password</label>
+                    <input type="password" id="password" placeholder="Enter panel password..." required>
+                </div>
+                <button type="submit" class="login-btn">
+                    <i class="fas fa-sign-in-alt"></i> Access Panel
+                </button>
+            </form>
+            
+            <div class="status-info">
+                <span id="statusText">🔐 Secure connection</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simple login protection
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const password = document.getElementById('password').value;
+            
+            // Change this password
+            if (password === 'admin123') {
+                window.location.href = '/dashboard.html';
+            } else {
+                document.getElementById('statusText').textContent = '❌ Incorrect password!';
+                document.getElementById('statusText').style.color = '#ff6b6b';
+            }
+        });
+    </script>
+
+    <style>
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: #0a0e17;
+        }
+        .login-box {
+            background: #111b2b;
+            padding: 40px;
+            border-radius: 16px;
+            border: 1px solid #1a2332;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        .login-box .logo i {
+            font-size: 48px;
+            color: #ff6b6b;
+        }
+        .login-box .logo h1 {
+            color: #e0e0e0;
+            margin: 12px 0 4px;
+        }
+        .login-box .logo p {
+            color: #8892a0;
+            font-size: 14px;
+        }
+        .form-group {
+            margin: 20px 0;
+            text-align: left;
+        }
+        .form-group label {
+            color: #8892a0;
+            font-size: 13px;
+            display: block;
+            margin-bottom: 6px;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            background: #0a0e17;
+            border: 1px solid #1a2332;
+            border-radius: 8px;
+            color: #e0e0e0;
+            font-size: 16px;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: #4ecdc4;
+        }
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: #4ecdc4;
+            border: none;
+            border-radius: 8px;
+            color: #0a0e17;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(78, 205, 196, 0.3);
+        }
+        .status-info {
+            margin-top: 16px;
+            color: #8892a0;
+            font-size: 13px;
+        }
+    </style>
+</body>
+</html>
