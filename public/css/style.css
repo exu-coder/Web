@@ -1,0 +1,105 @@
+/* Additional styles for dashboard */
+
+.device-controls {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 12px;
+}
+
+.refresh-btn {
+    background: #1a2332;
+    border: 1px solid #2a3a52;
+    color: #8892a0;
+    padding: 6px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.refresh-btn:hover {
+    border-color: #4ecdc4;
+    color: #4ecdc4;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.logout-btn {
+    background: transparent;
+    border: 1px solid #2a3a52;
+    color: #8892a0;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.logout-btn:hover {
+    border-color: #ff6b6b;
+    color: #ff6b6b;
+}
+
+.command-section {
+    margin-bottom: 16px;
+}
+
+.command-section h4 {
+    font-size: 12px;
+    color: #8892a0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+}
+
+.dump-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.dump-header h2 {
+    margin-bottom: 0;
+}
+
+.dump-controls {
+    display: flex;
+    gap: 8px;
+}
+
+.dump-controls button {
+    padding: 6px 14px;
+    border-radius: 6px;
+    border: 1px solid #1a2332;
+    background: #0a0e17;
+    color: #8892a0;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.dump-controls button:hover {
+    border-color: #4ecdc4;
+    color: #4ecdc4;
+}
+
+.clear-btn:hover {
+    border-color: #ff6b6b;
+    color: #ff6b6b;
+}
+
+.dump-entry .meta .timestamp {
+    font-weight: normal;
+    color: #8892a0;
+    font-size: 12px;
+}
