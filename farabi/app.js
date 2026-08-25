@@ -11,6 +11,27 @@ document.querySelectorAll(".reveal").forEach(el => observer.observe(el));
 
 document.getElementById("year").textContent = new Date().getFullYear();
 
+const footer = document.querySelector(".footer");
+if (footer && !footer.querySelector(".developer-contact")) {
+  const contact = document.createElement("div");
+  contact.className = "developer-contact";
+  contact.innerHTML = `
+    <span>Built by 𝐄𝐗𝐑 〆 𝐀𝐁𝐑𝐀𝐑</span>
+    <span>·</span>
+    <a href="https://github.com/exu-coder-9x" target="_blank" rel="noopener noreferrer">GitHub</a>
+    <span>·</span>
+    <a href="mailto:exucodex1@gmail.com">exucodex1@gmail.com</a>
+  `;
+  contact.style.cssText = "width:100%;margin-top:18px;padding-top:16px;border-top:1px solid #ffffff18;text-align:center;font:600 12px 'Space Grotesk',sans-serif;letter-spacing:.03em;color:#aebfb7";
+  contact.querySelectorAll("a").forEach(link => {
+    link.style.color = "#d7ee8b";
+    link.style.textDecoration = "none";
+    link.addEventListener("mouseenter", () => link.style.textDecoration = "underline");
+    link.addEventListener("mouseleave", () => link.style.textDecoration = "none");
+  });
+  footer.appendChild(contact);
+}
+
 const form = document.getElementById("applicationForm");
 const statusBox = document.getElementById("formStatus");
 
