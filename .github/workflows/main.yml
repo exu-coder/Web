@@ -1,4 +1,4 @@
-name: Deploy Farabi IT Center to GitHub Pages
+name: Deploy Farabi IT Center
 
 on:
   push:
@@ -24,15 +24,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-        with:
-          enablement: true
+      - name: Prepare static site
+        run: |
+          rm -rf _site
+          mkdir -p _site
+          cp -r farabi/. _site/
+          test -f _site/index.html
 
-      - name: Upload Farabi site
+      - name: Upload static site
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './farabi'
+          path: ./_site
 
       - name: Deploy to GitHub Pages
         id: deployment
