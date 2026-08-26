@@ -1,13 +1,39 @@
-const observer = new IntersectionObserver((entries, index) => {
+const revealElements = document.querySelectorAll(".reveal");
+
+// Keep observing elements so the reveal animation plays again when the user
+// scrolls back through the page in either direction.
+const observer = new IntersectionObserver((entries) => {
   entries.forEach((entry) => {
+    const element = entry.target;
+
     if (entry.isIntersecting) {
-      entry.target.style.transitionDelay = `${Math.min(index * 45, 220)}ms`;
-      entry.target.classList.add("visible", "show");
-      observer.unobserve(entry.target);
+      element.classList.add("visible", "show");
+    } else {
+      // Reset only after the element has fully left the viewport. This makes
+      // the animation replay naturally when scrolling back up/down.
+      element.classList.remove("visible", "show");
     }
   });
-}, { threshold: 0.12 });
-document.querySelectorAll(".reveal").forEach(el => observer.observe(el));
+}, {
+  threshold: 0.12,
+  rootMargin: "0px 0px -4% 0px"
+});
+
+revealElements.forEach((element, index) => {
+  element.style.transitionDelay = `${Math.min(index * 45, 220)}ms`;
+  observer.observe(element);
+});
+
+// Scroll progress for the sticky navigation bar.
+const updateScrollProgress = () => {
+  const documentHeight = document.documentElement.scrollHeight - window.innerHeight;
+  const progress = documentHeight > 0 ? Math.min(Math.max(window.scrollY / documentHeight, 0), 1) : 0;
+  document.documentElement.style.setProperty("--scroll", progress);
+};
+
+updateScrollProgress();
+window.addEventListener("scroll", updateScrollProgress, { passive: true });
+window.addEventListener("resize", updateScrollProgress, { passive: true });
 
 document.getElementById("year").textContent = new Date().getFullYear();
 
@@ -34,7 +60,7 @@ const statusBox = document.getElementById("formStatus");
 const submitButton = form?.querySelector('button[type="submit"]');
 
 const SUPABASE_URL = "https://yhvfguhgbxinphcvbjax.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlodmZndWhnYnhpbnBoY3ZiamF4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkwODQyMTEsImV4cCI6MjA3NDY2MDIxMX0.CVZQMcMcyl4o5saYcOgFheIhTnAyerO3BR3sc";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJ5aHZmZ3VoZ2J4aW5waGN2YmpheCIsInJlZiI6InlodmZndWhnYnhpbnBoY3ZiamF4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkwODQyMTEsImV4cCI6MjA3NDY2MDIxMX0.CVZQMcMcyl4o5saYcOgFheIhTnAyerO3BR3sc";
 
 if (form) form.addEventListener("submit", async (event) => {
   event.preventDefault();
