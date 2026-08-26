@@ -9,8 +9,7 @@ const observer = new IntersectionObserver((entries) => {
     if (entry.isIntersecting) {
       element.classList.add("visible", "show");
     } else {
-      // Reset only after the element has fully left the viewport. This makes
-      // the animation replay naturally when scrolling back up/down.
+      // Reset after leaving the viewport so the animation can replay.
       element.classList.remove("visible", "show");
     }
   });
@@ -30,7 +29,6 @@ const updateScrollProgress = () => {
   const progress = documentHeight > 0 ? Math.min(Math.max(window.scrollY / documentHeight, 0), 1) : 0;
   document.documentElement.style.setProperty("--scroll", progress);
 };
-
 updateScrollProgress();
 window.addEventListener("scroll", updateScrollProgress, { passive: true });
 window.addEventListener("resize", updateScrollProgress, { passive: true });
@@ -60,7 +58,7 @@ const statusBox = document.getElementById("formStatus");
 const submitButton = form?.querySelector('button[type="submit"]');
 
 const SUPABASE_URL = "https://yhvfguhgbxinphcvbjax.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJ5aHZmZ3VoZ2J4aW5waGN2YmpheCIsInJlZiI6InlodmZndWhnYnhpbnBoY3ZiamF4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkwODQyMTEsImV4cCI6MjA3NDY2MDIxMX0.CVZQMcMcyl4o5saYcOgFheIhTnAyerO3BR3sc";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlodmZndWhnYnhpbnBoY3ZiamF4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkwODQyMTEsImV4cCI6MjA3NDY2MDIxMX0.CVZQMcMcyl4o5saYcOgFheIhTnAyerO3BR3sc";
 
 if (form) form.addEventListener("submit", async (event) => {
   event.preventDefault();
