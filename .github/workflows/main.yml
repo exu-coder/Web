@@ -1,4 +1,4 @@
-name: Deploy Farabi IT Center
+name: Build and deploy Farabi site
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
   pages: write
   id-token: write
 
@@ -23,42 +23,18 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Wire Supabase apply form
-        shell: python
+      - name: Validate public structure
         run: |
-          from pathlib import Path
-          path = Path('farabi/index.html')
-          html = path.read_text(encoding='utf-8')
-          tag = '<script src="supabase-apply.js" defer></script>'
-          if tag not in html:
-              marker = '</body>'
-              if marker not in html:
-                  raise SystemExit('Could not find </body> in farabi/index.html')
-              html = html.replace(marker, tag + marker, 1)
-              path.write_text(html, encoding='utf-8')
-
-          import subprocess
-          subprocess.run(['git', 'config', 'user.name', 'github-actions[bot]'], check=True)
-          subprocess.run(['git', 'config', 'user.email', '41898282+github-actions[bot]@users.noreply.github.com'], check=True)
-          subprocess.run(['git', 'add', 'farabi/index.html'], check=True)
-          changed = subprocess.run(['git', 'diff', '--cached', '--quiet'])
-          if changed.returncode != 0:
-              subprocess.run(['git', 'commit', '-m', 'Wire Farabi apply form to Supabase [skip ci]'], check=True)
-              subprocess.run(['git', 'push'], check=True)
-
-      - name: Prepare static site
-        run: |
-          rm -rf _site
-          mkdir -p _site
-          cp -r farabi/. _site/
-          test -f _site/index.html
-
+          test -f public/index.html
+          test -f public/app.js
+          test -f public/supabase-apply.js
+          test -f public/admin/index.html
+          test -f public/admin/main.js
+          test -f public/admin/admin.css
       - name: Upload static site
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./_site
-
+          path: ./public
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
