@@ -4,9 +4,8 @@ const path = require('path');
 
 const PORT = Number(process.env.PORT) || 10000;
 const PUBLIC_DIR = path.resolve(__dirname, 'public');
-const ADMIN_DIR = path.join(PUBLIC_DIR, 'admin');
 const USER_INDEX = path.join(PUBLIC_DIR, 'index.html');
-const ADMIN_INDEX = path.join(ADMIN_DIR, 'index.html');
+const ADMIN_INDEX = path.join(PUBLIC_DIR, 'admin', 'index.html');
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -34,13 +33,13 @@ function safePath(base, requestPath) {
 }
 
 function sendFile(res, file) {
-  fs.stat(file, (statErr, stat) => {
-    if (statErr || !stat.isFile()) {
-      res.writeHead(statErr && statErr.code === 'ENOENT' ? 404 : 500, {
+  fs.stat(file, (err, stat) => {
+    if (err || !stat.isFile()) {
+      res.writeHead(err && err.code === 'ENOENT' ? 404 : 500, {
         'Content-Type': 'text/plain; charset=utf-8',
         'Cache-Control': 'no-store'
       });
-      return res.end(statErr && statErr.code === 'ENOENT' ? 'Not found' : 'Server error');
+      return res.end(err && err.code === 'ENOENT' ? 'Not found' : 'Server error');
     }
 
     const type = MIME[path.extname(file).toLowerCase()] || 'application/octet-stream';
@@ -48,10 +47,13 @@ function sendFile(res, file) {
       'Content-Type': type,
       'Cache-Control': 'no-cache, no-store, must-revalidate'
     });
-
-    if (res.req.method === 'HEAD') return res.end();
+    if (reqMethod(res) === 'HEAD') return res.end();
     fs.createReadStream(file).pipe(res);
   });
+}
+
+function reqMethod(res) {
+  return res.req && res.req.method;
 }
 
 const server = http.createServer((req, res) => {
@@ -63,26 +65,36 @@ const server = http.createServer((req, res) => {
   const normalized = url.replace(/\/{2,}/g, '/');
 
   if (normalized === '/health') {
-    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
+    res.writeHead(200, {
+      'Content-Type': 'application/json; charset=utf-8',
+      'Cache-Control': 'no-store'
+    });
     return res.end(JSON.stringify({ ok: true, user: '/', admin: '/farabi@/' }));
   }
 
-  // Admin panel: /farabi@/ and /farabi@
+  // Admin panel is always served from public/admin/index.html.
+  // /farabi@ and /farabi@/ both work.
   if (normalized === '/farabi@' || normalized === '/farabi@/') {
     return sendFile(res, ADMIN_INDEX);
   }
 
-  // Admin assets: /farabi@/<file>
+  // Admin assets keep their /farabi@/ URL prefix.
   if (normalized.startsWith('/farabi@/')) {
     const relative = normalized.slice('/farabi@'.length) || '/';
-    const file = safePath(ADMIN_DIR, relative);
-    if (!file) { res.writeHead(403); return res.end('Forbidden'); }
+    const file = safePath(path.join(PUBLIC_DIR, 'admin'), relative);
+    if (!file) {
+      res.writeHead(403, { 'Content-Type': 'text/plain; charset=utf-8' });
+      return res.end('Forbidden');
+    }
     return sendFile(res, file);
   }
 
-  // User panel and public assets.
+  // User panel and normal public assets.
   const file = safePath(PUBLIC_DIR, normalized);
-  if (!file) { res.writeHead(403); return res.end('Forbidden'); }
+  if (!file) {
+    res.writeHead(403, { 'Content-Type': 'text/plain; charset=utf-8' });
+    return res.end('Forbidden');
+  }
 
   fs.stat(file, (err, stat) => {
     if (!err && stat.isFile()) return sendFile(res, file);
