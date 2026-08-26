@@ -20,7 +20,7 @@
     const controls = [...form.querySelectorAll('input,select,textarea')];
     const fallback = (index) => controls[index];
     const fields = {
-      name: pick(form, ['name', 'নাম']) || fallback(0),
+      name: pick(form, ['name', 'full_name', 'নাম']) || fallback(0),
       phone: pick(form, ['phone', 'mobile', 'tel', 'মোবাইল', 'ফোন']) || fallback(1),
       email: pick(form, ['email', 'mail', 'ইমেইল']) || fallback(2),
       course: pick(form, ['course', 'subject', 'কোর্স']) || fallback(3),
@@ -36,14 +36,14 @@
       if (status) status.textContent = 'আপনার আবেদন পাঠানো হচ্ছে…';
 
       const payload = {
-        name: fields.name?.value?.trim() || '',
+        full_name: fields.name?.value?.trim() || '',
         phone: fields.phone?.value?.trim() || '',
         email: fields.email?.value?.trim() || null,
         course: fields.course?.value?.trim() || '',
         message: fields.message?.value?.trim() || null
       };
 
-      if (!payload.name || !payload.phone || !payload.course) {
+      if (!payload.full_name || !payload.phone || !payload.course) {
         if (status) status.textContent = 'দয়া করে নাম, ফোন এবং কোর্স পূরণ করুন।';
         if (submit) { submit.disabled = false; submit.textContent = submit.dataset.originalText || 'Apply'; }
         return;
