@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: farabi-it-center-web
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    autoDeploy: true
+    healthCheckPath: /health
