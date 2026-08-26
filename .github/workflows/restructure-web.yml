@@ -1,0 +1,132 @@
+name: Restructure Web App
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  restructure:
+    if: github.event.head_commit.message != 'chore: finalize public structure'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Build public structure
+        shell: bash
+        run: |
+          set -e
+          mkdir -p public/admin
+
+          if [ -d "farabi" ]; then
+            find farabi -maxdepth 1 -type f -exec mv {} public/ \;
+            rm -rf farabi
+          fi
+
+          if [ -d "farabi@" ]; then
+            find 'farabi@' -maxdepth 1 -type f -exec mv {} public/admin/ \;
+            rm -rf 'farabi@'
+          fi
+
+          cat > server.js <<'EOF'
+          const http = require('http');
+          const fs = require('fs');
+          const path = require('path');
+
+          const PORT = Number(process.env.PORT) || 10000;
+          const PUBLIC = path.join(__dirname, 'public');
+          const ADMIN = path.join(PUBLIC, 'admin');
+
+          const MIME = {
+            '.html': 'text/html; charset=utf-8',
+            '.js': 'application/javascript; charset=utf-8',
+            '.css': 'text/css; charset=utf-8',
+            '.json': 'application/json; charset=utf-8',
+            '.png': 'image/png',
+            '.jpg': 'image/jpeg',
+            '.jpeg': 'image/jpeg',
+            '.svg': 'image/svg+xml',
+            '.webp': 'image/webp',
+            '.ico': 'image/x-icon',
+            '.txt': 'text/plain; charset=utf-8'
+          };
+
+          function safeFile(base, requestPath) {
+            const clean = decodeURIComponent(requestPath.split('?')[0]).replace(/\\0/g, '');
+            const resolved = path.resolve(base, '.' + clean);
+            return resolved.startsWith(path.resolve(base)) ? resolved : null;
+          }
+
+          function sendFile(res, file) {
+            if (!file || !fs.existsSync(file) || !fs.statSync(file).isFile()) {
+              res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+              return res.end('Not Found');
+            }
+            const ext = path.extname(file).toLowerCase();
+            res.writeHead(200, {
+              'Content-Type': MIME[ext] || 'application/octet-stream',
+              'Cache-Control': 'no-cache'
+            });
+            fs.createReadStream(file).pipe(res);
+          }
+
+          const server = http.createServer((req, res) => {
+            const url = decodeURIComponent((req.url || '/').split('?')[0]);
+
+            if (url === '/health' || url === '/health/') {
+              res.writeHead(200, { 'Content-Type': 'application/json' });
+              return res.end(JSON.stringify({ ok: true }));
+            }
+
+            // Admin panel: /farabi@/ and all of its assets.
+            if (url === '/farabi@' || url === '/farabi@/') {
+              return sendFile(res, path.join(ADMIN, 'index.html'));
+            }
+            if (url.startsWith('/farabi@/')) {
+              const relative = url.slice('/farabi@/'.length);
+              const file = safeFile(ADMIN, '/' + relative);
+              return sendFile(res, file);
+            }
+
+            // User panel: / and its static files.
+            if (url === '/' || url === '') {
+              return sendFile(res, path.join(PUBLIC, 'index.html'));
+            }
+            return sendFile(res, safeFile(PUBLIC, url));
+          });
+
+          server.listen(PORT, '0.0.0.0', () => {
+            console.log(`Farabi IT Center server listening on 0.0.0.0:${PORT}`);
+          });
+          EOF
+
+          cat > package.json <<'EOF'
+          {
+            "name": "farabi-it-center-web",
+            "version": "1.0.0",
+            "private": true,
+            "description": "Farabi IT Center user and admin panels",
+            "scripts": {
+              "start": "node server.js"
+            },
+            "engines": {
+              "node": ">=18"
+            }
+          }
+          EOF
+
+          rm -f .github/workflows/restructure-web.yml
+
+      - name: Commit final structure
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "chore: finalize public structure" || exit 0
+          git push
