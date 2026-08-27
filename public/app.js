@@ -1,1 +1,56 @@
 const form=document.getElementById('applicationForm');const statusEl=document.getElementById('status');function setStatus(message,ok=false){if(!statusEl)return;statusEl.textContent=message;statusEl.style.color=ok?'#15803d':'#b45309'}function showNotice(title,body,success=true){let old=document.getElementById('noticeBackdrop');if(old)old.remove();const wrap=document.createElement('div');wrap.id='noticeBackdrop';wrap.className='notice-backdrop';wrap.innerHTML=`<div class="notice" role="dialog" aria-modal="true"><div class="notice-icon">${success?'✓':'!'}</div><h3>${title}</h3><p>${body}</p><button class="button primary close" type="button">${success?'Close':'Try Again'}</button></div>`;document.body.appendChild(wrap);requestAnimationFrame(()=>wrap.classList.add('show'));const close=wrap.querySelector('.close');close.addEventListener('click',()=>{wrap.classList.remove('show');setTimeout(()=>wrap.remove(),300)});wrap.addEventListener('click',e=>{if(e.target===wrap)close.click()});if(success&&navigator.vibrate)navigator.vibrate([20,30,20])}if(form){form.addEventListener('submit',async event=>{event.preventDefault();const button=form.querySelector('button[type="submit"]');if(button){button.disabled=true;button.classList.add('loading');button.dataset.original=button.textContent;button.textContent='Submitting…'}setStatus('আবেদন জমা দেওয়া হচ্ছে…');const raw=Object.fromEntries(new FormData(form));const data={full_name:String(raw.full_name||'').trim(),phone:String(raw.phone||'').trim(),email:raw.email?String(raw.email).trim():null,course:String(raw.course||'').trim(),message:raw.message?String(raw.message).trim():null};try{const response=await fetch('/api/applications',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(data)});const result=await response.json().catch(()=>({}));if(!response.ok)throw new Error(result.error||'আবেদন সংরক্ষণ করা যায়নি');setStatus('আবেদন সফলভাবে জমা হয়েছে ✓',true);form.reset();showNotice('Application Submitted Successfully','Your application has been submitted successfully. Please wait patiently while we review your application. You will receive a notice by email, or we will contact you directly using the phone number provided in your application. Thank you for contacting us.');}catch(error){console.error('Application submission failed:',error);setStatus('সার্ভারে সংযোগ সমস্যা হয়েছে। পরে আবার চেষ্টা করুন।');showNotice('Application Could Not Be Submitted','We could not submit your application at this time. Please check your connection and try again.',false)}finally{if(button){button.disabled=false;button.classList.remove('loading');button.textContent=button.dataset.original||'আবেদন জমা দিন ↗'}}})}
+
+document.addEventListener("DOMContentLoaded",()=>{
+
+  const revealItems=document.querySelectorAll(
+    ".reveal,.reveal-left,.reveal-right,.reveal-scale,.reveal-stagger"
+  );
+
+  const reducedMotion=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  if(reducedMotion){
+    revealItems.forEach(item=>item.classList.add("visible"));
+  }else if("IntersectionObserver" in window){
+    const revealObserver=new IntersectionObserver((entries,observer)=>{
+      entries.forEach(entry=>{
+        if(entry.isIntersecting){
+          entry.target.classList.add("visible");
+          observer.unobserve(entry.target);
+        }
+      });
+    },{
+      threshold:0.12,
+      rootMargin:"0px 0px -60px 0px"
+    });
+
+    revealItems.forEach(item=>revealObserver.observe(item));
+  }else{
+    revealItems.forEach(item=>item.classList.add("visible"));
+  }
+
+  const progress=document.createElement("div");
+  progress.className="scroll-progress";
+  progress.setAttribute("aria-hidden","true");
+  document.body.appendChild(progress);
+
+  let ticking=false;
+
+  function updateScrollProgress(){
+    const scrollTop=window.scrollY||document.documentElement.scrollTop;
+    const pageHeight=document.documentElement.scrollHeight-window.innerHeight;
+    const percentage=pageHeight>0?Math.min(100,Math.max(0,(scrollTop/pageHeight)*100)):0;
+    progress.style.width=percentage+"%";
+    ticking=false;
+  }
+
+  window.addEventListener("scroll",()=>{
+    if(!ticking){
+      window.requestAnimationFrame(updateScrollProgress);
+      ticking=true;
+    }
+  },{passive:true});
+
+  window.addEventListener("resize",updateScrollProgress,{passive:true});
+  updateScrollProgress();
+
+});
