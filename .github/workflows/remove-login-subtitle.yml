@@ -1,7 +1,7 @@
 name: Remove admin login subtitle
 
 on:
-  workflow_dispatch:
+  push:
 
 permissions:
   contents: write
@@ -20,13 +20,13 @@ jobs:
           old = '<p>MongoDB Atlas • Liquid Glass Admin</p>'
           if old not in s:
               raise SystemExit('Target text not found')
-          s = s.replace(old, '', 1)
-          p.write_text(s, encoding='utf-8')
+          p.write_text(s.replace(old, '', 1), encoding='utf-8')
           PY
-      - name: Commit change
+      - name: Commit change and remove temporary workflow
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm .github/workflows/remove-login-subtitle.yml
           git add public/admin/index.html
           git commit -m 'Remove MongoDB Atlas subtitle from admin login'
           git push
